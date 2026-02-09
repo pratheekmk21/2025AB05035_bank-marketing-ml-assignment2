@@ -24,8 +24,13 @@ model_choice = st.selectbox(
 if uploaded_file is not None:
     df = pd.read_csv(uploaded_file)
 
+    if 'y' in df.columns:
     y_true = df['y']
     X = df.drop('y', axis=1)
+    has_target = True
+else:
+    X = df
+    has_target = False
 
     scaler = joblib.load("models/scaler.pkl")
 
@@ -42,8 +47,9 @@ if uploaded_file is not None:
     }
 
     model = joblib.load(model_files[model_choice])
-    y_pred = model.predict(X)
+y_pred = model.predict(X)
 
+if has_target:
     st.subheader("Classification Report")
     st.text(classification_report(y_true, y_pred))
 
@@ -53,3 +59,7 @@ if uploaded_file is not None:
     fig, ax = plt.subplots()
     sns.heatmap(cm, annot=True, fmt="d", cmap="Blues", ax=ax)
     st.pyplot(fig)
+else:
+    st.subheader("Predictions")
+    df['prediction'] = y_pred
+    st.dataframe(df.head(20))
